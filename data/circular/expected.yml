@@ -1,0 +1,11 @@
+id: a
+parent:
+  id: c
+  parent:
+    id: b
+    name: bb
+    parent:
+      id: a
+      parent: _circular reference_
+      name: aa
+name: aa

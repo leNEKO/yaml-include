@@ -1,0 +1,32 @@
+Hello:
+  - world
+  - World:
+      - Youpi
+      - Tralala
+      - 42
+  - Bye:
+      - people
+      - need to be recursive: yes
+        whatever: "!data:txt;base64 Q0VDSSBlc3QgdW4gdGV4dGU="
+Documentation:
+  - |
+    # Hello
+
+    ```json
+    {
+      "yay": ["an", "array"],
+      "nay": false
+    }
+    ```
+
+    ## World
+
+    > chouette du markdown
+
+    - comment
+    - ça
+    - marche
+
+    ```typescript
+    const good = 'bad';
+    ```

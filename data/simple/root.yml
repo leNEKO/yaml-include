@@ -1,0 +1,7 @@
+Hello:
+  - world
+  - ${nested/a.yml}
+  - ${nested/b.yml}
+
+Documentation:
+  - ${doc.md}

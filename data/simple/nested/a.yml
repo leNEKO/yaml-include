@@ -1,0 +1,5 @@
+World:
+  - Youpi
+  - Tralala
+  - 42
+  - ${b.yml}

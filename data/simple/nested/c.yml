@@ -1,0 +1,2 @@
+need to be recursive: yes
+whatever: ${../whatever.txt}
