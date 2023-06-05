@@ -1,7 +1,10 @@
-Hello:
+DirtyNested:
   - world
   - ${nested/a.yml}
   - ${nested/b.yml}
+
+ProperNested:
+  - !include nested/d.yml
 
 Documentation:
   - ${doc.md}

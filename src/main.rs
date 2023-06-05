@@ -10,6 +10,8 @@ struct Args {
 }
 
 mod flattener;
+mod helpers;
+
 fn main() -> Result<()> {
     let args = Args::parse();
 

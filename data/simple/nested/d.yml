@@ -1,0 +1,5 @@
+CleanInclude:
+  - yay!
+  - beautiful!
+  - !include ../../circular/a.yml
+  - !include ../image.webp
