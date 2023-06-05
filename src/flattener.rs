@@ -5,11 +5,11 @@ use serde_yaml::{
 
 use std::{
     fmt,
-    fs::{canonicalize, read, read_to_string},
+    fs::{canonicalize, read_to_string},
     path::PathBuf,
 };
 
-use crate::helpers::{is_dirty_include, load_yaml};
+use crate::helpers::{load_as_base64, load_yaml};
 
 #[derive(Debug, Clone)]
 pub struct Flattener {
@@ -35,18 +35,11 @@ impl Flattener {
     }
 
     fn recursive_flatten(self, input: Value) -> Value {
-        let result = match input {
+        match input {
             Value::Sequence(seq) => seq
                 .iter()
                 .map(|v| self.clone().recursive_flatten(v.clone()))
                 .collect(),
-            Value::Bool(v) => Value::Bool(v),
-            Value::Null => Value::Null,
-            Value::Number(v) => Value::Number(v),
-            Value::String(data) => match is_dirty_include(data.clone()) {
-                None => Value::String(data),
-                Some(file_path) => self.handle_include_extension(file_path),
-            },
             Value::Mapping(map) => Value::Mapping(Mapping::from_iter(
                 map.iter()
                     .map(|(k, v)| (k.clone(), self.clone().recursive_flatten(v.clone()))),
@@ -60,9 +53,9 @@ impl Flattener {
                 }
                 _ => Value::Tagged(tagged_value),
             },
-        };
-
-        result
+            // default no transform
+            _ => input,
+        }
     }
 
     fn circular_reference_guard(&self, file_path: &PathBuf) -> bool {
@@ -72,42 +65,37 @@ impl Flattener {
     fn handle_include_extension(&self, file_path: PathBuf) -> Value {
         let normalized_file_path = self.process_path(file_path);
 
-        let result = match normalized_file_path
-            .extension()
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .to_lowercase()
-            .as_str()
-        {
-            "yaml" | "yml" => {
-                if self.circular_reference_guard(&normalized_file_path) {
-                    let path_string = &normalized_file_path.display();
+        let result = match normalized_file_path.extension() {
+            Some(os_str) => match os_str.to_str() {
+                Some("yaml") | Some("yml") => {
+                    if self.circular_reference_guard(&normalized_file_path) {
+                        let path_string = &normalized_file_path.display();
 
-                    return Value::Tagged(
-                        TaggedValue {
-                            tag: Tag::new("circular"),
-                            value: Value::String(path_string.to_string()),
-                        }
-                        .into(),
-                    );
+                        return Value::Tagged(
+                            TaggedValue {
+                                tag: Tag::new("circular"),
+                                value: Value::String(path_string.to_string()),
+                            }
+                            .into(),
+                        );
+                    }
+                    let mut seen_paths = self.seen_paths.clone();
+                    seen_paths.push(normalized_file_path.clone());
+
+                    Flattener::new(normalized_file_path, seen_paths).parse()
                 }
-                let mut seen_paths = self.seen_paths.clone();
-                seen_paths.push(normalized_file_path.clone());
-
-                Flattener::new(normalized_file_path, seen_paths).parse()
-            }
-            "txt" | "markdown" | "md" => {
-                Value::String(read_to_string(normalized_file_path).unwrap())
-            }
-            _ => {
-                let data = read(normalized_file_path).unwrap();
-
-                Value::Tagged(Box::new(TaggedValue {
+                // inlining markdow and text files
+                Some("txt") | Some("markdown") | Some("md") => {
+                    Value::String(read_to_string(normalized_file_path).unwrap())
+                }
+                // inlining other include as binary files
+                // TODO add original filename
+                None | Some(&_) => Value::Tagged(Box::new(TaggedValue {
                     tag: Tag::new("binary"),
-                    value: Value::String(base64::encode(data)),
-                }))
-            }
+                    value: Value::String(load_as_base64(&normalized_file_path).unwrap()),
+                })),
+            },
+            _ => panic!("{:?} path missing file extension", normalized_file_path),
         };
 
         result
@@ -118,6 +106,10 @@ impl Flattener {
             return file_path;
         }
         let joined = self.root_path.parent().unwrap().join(file_path);
+
+        if !joined.is_file() {
+            panic!("{:?} not found", joined);
+        }
 
         canonicalize(joined).unwrap()
     }
@@ -131,10 +123,4 @@ impl fmt::Display for Flattener {
             serde_yaml::to_string(&self.clone().parse()).unwrap()
         )
     }
-}
-#[test]
-fn test_create_flattener() {
-    let t = Flattener::new("data/circular/a.yml".into(), vec![]);
-    let r = t.parse();
-    dbg!(r);
 }

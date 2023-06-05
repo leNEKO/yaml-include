@@ -1,2 +1,2 @@
 need to be recursive: yes
-whatever: ${../whatever.txt}
+whatever: !include ../whatever.txt

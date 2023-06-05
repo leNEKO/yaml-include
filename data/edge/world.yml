@@ -1,5 +1,5 @@
 - a
 - b
 - c
-- ${stuff.yml}
-- ${hello.yml}
+- !include stuff.yml
+- !include hello.yml

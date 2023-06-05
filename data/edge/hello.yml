@@ -1,2 +1,2 @@
-hello: ${world.yml}
-world: ${world.yml}
+hello: !include world.yml
+world: !include world.yml

@@ -1,8 +1,11 @@
 use anyhow::Result;
-use regex::Regex;
+use base64::{engine::general_purpose, Engine};
 use serde_yaml::Value as YamlValue;
 
-use std::{fs::File, path::PathBuf};
+use std::{
+    fs::{read, File},
+    path::PathBuf,
+};
 
 pub fn load_yaml(file_path: PathBuf) -> Result<YamlValue> {
     let file_reader = File::open(file_path).expect("Unable to open file");
@@ -11,25 +14,10 @@ pub fn load_yaml(file_path: PathBuf) -> Result<YamlValue> {
     Ok(data)
 }
 
-pub fn is_dirty_include(text: String) -> Option<PathBuf> {
-    Regex::new(r"\$\{(?P<file_path>.+)\}")
-        .unwrap()
-        .captures(text.as_str())
-        .map(|v| v.name("file_path").unwrap().as_str().into())
-}
-#[test]
-fn test_is_include() {
-    let actual = is_dirty_include("${/hello.world/test.yaml}".into());
-    let expected = Some("/hello.world/test.yaml".into());
+pub fn load_as_base64(normalized_file_path: &PathBuf) -> Result<String> {
+    let bytes = read(normalized_file_path).expect("Unable to open file");
+    let mut data = String::new();
+    general_purpose::STANDARD.encode_string(bytes, &mut data);
 
-    dbg!(&actual, &expected);
-
-    assert_eq!(actual, expected);
-}
-#[test]
-fn test_is_not_include() {
-    let actual = is_dirty_include("/hello.world/test.yaml".into());
-    let expected = None;
-
-    assert_eq!(actual, expected);
+    Ok(data)
 }

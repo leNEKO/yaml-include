@@ -1,10 +1,28 @@
-DirtyNested:
+Nested:
   - world
-  - ${nested/a.yml}
-  - ${nested/b.yml}
-
-ProperNested:
+  - !include nested/a.yml
+  - !include nested/b.yml
   - !include nested/d.yml
 
 Documentation:
-  - ${doc.md}
+  - !include doc.md
+
+MySet: !!set
+  ? one
+  ? two
+  ? three
+
+MyOrderedMap: !!omap
+  - Hello: 12
+  - World: 32
+  - One: 1
+
+MyNode: &refMyNode
+  - Hello
+  - World
+
+OtherNode: &refOtherNode
+  Reusenode: *refMyNode
+
+FinalForm:
+  What: *refOtherNode

@@ -1,3 +1,3 @@
 id: a
-parent: ${c.yml}
+parent: !include c.yml
 name: aa
