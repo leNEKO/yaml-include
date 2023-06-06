@@ -1,11 +1,11 @@
 Nested:
   - world
-  - !include nested/a.yml
-  - !include nested/b.yml
-  - !include nested/d.yml
+  - !include simple/nested/a.yml
+  - !include simple/nested/b.yml
+  - !include simple/nested/d.yml
 
 Documentation:
-  - !include doc.md
+  - !include simple/doc.md
 
 MySet: !!set
   ? one
@@ -21,7 +21,7 @@ MyNode: &refMyNode
   - Hello
   - World
 
-OtherNode: &refOtherNode
+OtherNode: &refOtherNode # a comment
   Reusenode: *refMyNode
 
 FinalForm:

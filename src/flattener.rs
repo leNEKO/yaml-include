@@ -3,11 +3,7 @@ use serde_yaml::{
     Mapping, Value,
 };
 
-use std::{
-    fmt,
-    fs::{canonicalize, read_to_string},
-    path::PathBuf,
-};
+use std::{fmt, fs::read_to_string, path::PathBuf};
 
 use crate::helpers::{load_as_base64, load_yaml};
 
@@ -63,13 +59,13 @@ impl Flattener {
     }
 
     fn handle_include_extension(&self, file_path: PathBuf) -> Value {
-        let normalized_file_path = self.process_path(file_path);
+        let normalized_file_path = self.process_path(&file_path);
 
         let result = match normalized_file_path.extension() {
             Some(os_str) => match os_str.to_str() {
                 Some("yaml") | Some("yml") => {
                     if self.circular_reference_guard(&normalized_file_path) {
-                        let path_string = &normalized_file_path.display();
+                        let path_string = &file_path.display();
 
                         return Value::Tagged(
                             TaggedValue {
@@ -89,10 +85,24 @@ impl Flattener {
                     Value::String(read_to_string(normalized_file_path).unwrap())
                 }
                 // inlining other include as binary files
-                // TODO add original filename
                 None | Some(&_) => Value::Tagged(Box::new(TaggedValue {
                     tag: Tag::new("binary"),
-                    value: Value::String(load_as_base64(&normalized_file_path).unwrap()),
+                    value: Value::Mapping(Mapping::from_iter([
+                        (
+                            Value::String("filename".into()),
+                            Value::String(
+                                normalized_file_path
+                                    .file_name()
+                                    .unwrap()
+                                    .to_string_lossy()
+                                    .to_string(),
+                            ),
+                        ),
+                        (
+                            Value::String("base64".into()),
+                            Value::String(load_as_base64(&normalized_file_path).unwrap()),
+                        ),
+                    ])),
                 })),
             },
             _ => panic!("{:?} path missing file extension", normalized_file_path),
@@ -101,9 +111,9 @@ impl Flattener {
         result
     }
 
-    fn process_path(&self, file_path: PathBuf) -> PathBuf {
+    fn process_path(&self, file_path: &PathBuf) -> PathBuf {
         if file_path.is_absolute() {
-            return file_path;
+            return file_path.clone();
         }
         let joined = self.root_path.parent().unwrap().join(file_path);
 
@@ -111,7 +121,7 @@ impl Flattener {
             panic!("{:?} not found", joined);
         }
 
-        canonicalize(joined).unwrap()
+        joined
     }
 }
 
@@ -123,4 +133,13 @@ impl fmt::Display for Flattener {
             serde_yaml::to_string(&self.clone().parse()).unwrap()
         )
     }
+}
+
+#[test]
+fn test_flattener() {
+    let expected = read_to_string("data/expected.yml").unwrap();
+    let flattener = Flattener::new(PathBuf::from("data/root.yml"), vec![]);
+    let actual = flattener.to_string();
+
+    assert_eq!(expected, actual);
 }

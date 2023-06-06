@@ -1,0 +1,70 @@
+Nested:
+- world
+- World:
+  - Youpi
+  - Tralala
+  - 42
+  - Bye:
+    - people
+    - need to be recursive: yes
+      whatever: CECI est un texte
+- Bye:
+  - people
+  - need to be recursive: yes
+    whatever: CECI est un texte
+- CleanInclude:
+  - yay!
+  - beautiful!
+  - id: a
+    parent:
+      id: c
+      parent:
+        id: b
+        name: bb
+        parent: !circular a.yml
+    name: aa
+  - !binary
+    filename: image.webp
+    base64: UklGRpQCAABXRUJQVlA4TIgCAAAvf8AfAA8w//M///MfeKBsbZsiSRkfnNWssEvgAhyW7Nyh9rg7/OgVwN61bdxnKnB3aDnU6fpxqT41gWXFIaMiXiTiL1iyi+j/BPC/ZCdN0HmpBWQ+V3Zf+CngN89XrnzoVqA7ta8Sjvguk1emrk4F2X/ePHDV5Z/mAlzs7oPbp19sKjQeeovnDGsoEvoX9gyQlvfHZFA6+0U3l5wnQIPxjFbZHQyp/3tAhob42Btz+L2ureiqwW+40cXPVdyqx9+DQdicS2esufFXpDn9ybZ0+fqPv4b5H04alD469sU/0KnUjErvXnPiCLbtzlOlb5wCX9y7NF96LUiC0VFfvlDK2oPOPcd9ubmE8M/jXt5dSiG1uHzGlzeUUICAMUrCdZcNkMAxlNrFQMoYFZZJlgFAMPgEHiRWJAJ47A4xaAZQQzVN9B96IJv+3TjR7klcmugamUB2Yr4Bd11KFriqwdyBfjTJyVfdlpLp2BuP/n1oEH/sixt+xNo56c6jl0xszGf/ng1yuTC/HA14lY+DWtTJuQ3WFrnXtkL3x2BR3CkHkoXE/WOsAq7rLaD3pc0Wzx2d+3WXARZkPJstbrh/HOZrDpneP56VGmxGxmE+GogyXsQ6mztOelcZQPBYF4HIqKbKQEFrGQ7ehlVHT3z9fKJbg02rVn9MrKhrNr44tfYCV4GLVmX6U9T9picTzLU1t/5HQKhm9ygSseZf2XwIuUcrfIo7iDG4hhuCBYZsztBoKEmEiFBVWeEGD6GCz6QEOELBtfQ0MxT+GellaLG6loZouQHYDZoA+UeSIBFjH4gAsXR5Ag9kyoeACC6i//CbMyiwQjkBEevFEIPFAV0ALaEgHmuAhNmh1AE=
+Documentation:
+- |
+  # Hello
+
+  ```json
+  {
+    "yay": ["an", "array"],
+    "nay": false
+  }
+  ```
+
+  ## World
+
+  > chouette du markdown
+
+  - comment
+  - ça
+  - marche
+
+  ```typescript
+  const good = 'bad';
+  ```
+MySet:
+  one: null
+  two: null
+  three: null
+MyOrderedMap:
+- Hello: 12
+- World: 32
+- One: 1
+MyNode:
+- Hello
+- World
+OtherNode:
+  Reusenode:
+  - Hello
+  - World
+FinalForm:
+  What:
+    Reusenode:
+    - Hello
+    - World

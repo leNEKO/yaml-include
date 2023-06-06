@@ -1,2 +1,0 @@
-hello: !include world.yml
-world: !include world.yml
