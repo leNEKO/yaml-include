@@ -1,0 +1,3 @@
+data:
+    - !include file_a.yml
+    - !include file_b.yml

@@ -8,16 +8,16 @@ use std::{fmt, fs::read_to_string, path::PathBuf};
 use crate::helpers::{load_as_base64, load_yaml};
 
 #[derive(Debug, Clone)]
-pub struct Flattener {
+pub struct Transformer {
     root_path: PathBuf,
     seen_paths: Vec<PathBuf>, // for circular reference detection
 }
 
-impl Flattener {
+impl Transformer {
     pub fn new(root_path: PathBuf, mut seen_paths: Vec<PathBuf>) -> Self {
         seen_paths.push(root_path.clone());
 
-        Flattener {
+        Transformer {
             root_path,
             seen_paths,
         }
@@ -27,18 +27,18 @@ impl Flattener {
         let file_path = self.root_path.clone();
         let input = load_yaml(file_path).unwrap();
 
-        self.recursive_flatten(input)
+        self.recursive_process(input)
     }
 
-    fn recursive_flatten(self, input: Value) -> Value {
+    fn recursive_process(self, input: Value) -> Value {
         match input {
             Value::Sequence(seq) => seq
                 .iter()
-                .map(|v| self.clone().recursive_flatten(v.clone()))
+                .map(|v| self.clone().recursive_process(v.clone()))
                 .collect(),
             Value::Mapping(map) => Value::Mapping(Mapping::from_iter(
                 map.iter()
-                    .map(|(k, v)| (k.clone(), self.clone().recursive_flatten(v.clone()))),
+                    .map(|(k, v)| (k.clone(), self.clone().recursive_process(v.clone()))),
             )),
             Value::Tagged(tagged_value) => match tagged_value.tag.to_string().as_str() {
                 "!include" => {
@@ -78,7 +78,7 @@ impl Flattener {
                     let mut seen_paths = self.seen_paths.clone();
                     seen_paths.push(normalized_file_path.clone());
 
-                    Flattener::new(normalized_file_path, seen_paths).parse()
+                    Transformer::new(normalized_file_path, seen_paths).parse()
                 }
                 // inlining markdow and text files
                 Some("txt") | Some("markdown") | Some("md") => {
@@ -125,7 +125,7 @@ impl Flattener {
     }
 }
 
-impl fmt::Display for Flattener {
+impl fmt::Display for Transformer {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
@@ -138,8 +138,8 @@ impl fmt::Display for Flattener {
 #[test]
 fn test_flattener() {
     let expected = read_to_string("data/expected.yml").unwrap();
-    let flattener = Flattener::new(PathBuf::from("data/root.yml"), vec![]);
-    let actual = flattener.to_string();
+    let transformer = Transformer::new(PathBuf::from("data/root.yml"), vec![]);
+    let actual = transformer.to_string();
 
     assert_eq!(expected, actual);
 }

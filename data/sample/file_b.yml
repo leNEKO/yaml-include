@@ -1,0 +1,3 @@
+other:
+    - text: !include file_c.txt
+    - markdown: !include file_d.md
