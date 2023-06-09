@@ -2,7 +2,7 @@
 
 A yaml processor that can recursivly include files through `!include <path>` tag.
 
-> well, it kinda works with json as well see [data/simple/other.json](data/simple/other.json])
+> well, it kinda works with json as well see [data/simple/other.json](data/simple/other.json)
 
 ## Install
 
