@@ -1,0 +1,15 @@
+{
+    "string": "world",
+    "integer": 10,
+    "float": 3.33,
+    "decimal": "7.77",
+    "boolean": true,
+    "list": [
+        "hello",
+        "world"
+    ],
+    "map": {
+        "this": "or that",
+        "data": !include ../root.yml
+    }
+}

@@ -7,6 +7,8 @@ Nested:
 Documentation:
   - !include simple/doc.md
 
+JsonData: !include simple/other.json
+
 MySet: !!set
   ? one
   ? two

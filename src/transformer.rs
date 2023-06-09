@@ -3,19 +3,29 @@ use serde_yaml::{
     Mapping, Value,
 };
 
-use std::{fmt, fs::read_to_string, path::PathBuf};
+use std::{
+    collections::HashSet,
+    fmt,
+    fs::{canonicalize, read_to_string},
+    path::PathBuf,
+};
 
 use crate::helpers::{load_as_base64, load_yaml};
 
 #[derive(Debug, Clone)]
 pub struct Transformer {
     root_path: PathBuf,
-    seen_paths: Vec<PathBuf>, // for circular reference detection
+    seen_paths: HashSet<PathBuf>, // for circular reference detection
 }
 
 impl Transformer {
-    pub fn new(root_path: PathBuf, mut seen_paths: Vec<PathBuf>) -> Self {
-        seen_paths.push(root_path.clone());
+    pub fn new(root_path: PathBuf, seen_paths_option: Option<HashSet<PathBuf>>) -> Self {
+        let mut seen_paths = match seen_paths_option {
+            Some(set) => set,
+            None => HashSet::new(),
+        };
+
+        seen_paths.insert(canonicalize(&root_path).unwrap());
 
         Transformer {
             root_path,
@@ -63,7 +73,7 @@ impl Transformer {
 
         let result = match normalized_file_path.extension() {
             Some(os_str) => match os_str.to_str() {
-                Some("yaml") | Some("yml") => {
+                Some("yaml") | Some("yml") | Some("json") => {
                     if self.circular_reference_guard(&normalized_file_path) {
                         let path_string = &file_path.display();
 
@@ -75,10 +85,8 @@ impl Transformer {
                             .into(),
                         );
                     }
-                    let mut seen_paths = self.seen_paths.clone();
-                    seen_paths.push(normalized_file_path.clone());
 
-                    Transformer::new(normalized_file_path, seen_paths).parse()
+                    Transformer::new(normalized_file_path, Some(self.seen_paths.clone())).parse()
                 }
                 // inlining markdow and text files
                 Some("txt") | Some("markdown") | Some("md") => {
@@ -121,7 +129,7 @@ impl Transformer {
             panic!("{:?} not found", joined);
         }
 
-        joined
+        canonicalize(joined).unwrap()
     }
 }
 
@@ -138,7 +146,7 @@ impl fmt::Display for Transformer {
 #[test]
 fn test_flattener() {
     let expected = read_to_string("data/expected.yml").unwrap();
-    let transformer = Transformer::new(PathBuf::from("data/root.yml"), vec![]);
+    let transformer = Transformer::new(PathBuf::from("data/root.yml"), None);
     let actual = transformer.to_string();
 
     assert_eq!(expected, actual);

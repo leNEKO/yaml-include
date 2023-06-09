@@ -2,6 +2,8 @@
 
 A yaml processor that can recursivly include files through `!include <path>` tag.
 
+> well, it kinda works with json as well see [data/simple/other.json](data/simple/other.json])
+
 ## Install
 
 ```shell
@@ -38,6 +40,10 @@ yaml-include data/sample/main.yml > main_inlined.yml
 ```
 
 ## Features
+
+- include and parse recursivly `yaml` (and `json`) files
+- include `markdown` and `txt` text files
+- include other types as `base64` encoded binary data. 
 
 Basically,
 turns this:

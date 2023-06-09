@@ -17,7 +17,7 @@ mod transformer;
 fn main() -> Result<()> {
     let args = Args::parse();
 
-    let f = transformer::Transformer::new(args.file_path, vec![]);
+    let f = transformer::Transformer::new(args.file_path, None);
 
     print!("{}", f);
 
