@@ -1,3 +1,4 @@
+use anyhow::{anyhow, Result};
 use serde_yaml::{
     value::{Tag, TaggedValue},
     Mapping, Value,
@@ -19,18 +20,28 @@ pub struct Transformer {
 }
 
 impl Transformer {
-    pub fn new(root_path: PathBuf, seen_paths_option: Option<HashSet<PathBuf>>) -> Self {
+    pub fn new(root_path: PathBuf, seen_paths_option: Option<HashSet<PathBuf>>) -> Result<Self> {
         let mut seen_paths = match seen_paths_option {
             Some(set) => set,
             None => HashSet::new(),
         };
 
-        seen_paths.insert(canonicalize(&root_path).unwrap());
+        let normalized_path = canonicalize(&root_path).unwrap();
 
-        Transformer {
+        // Circular reference guard
+        if seen_paths.contains(&normalized_path) {
+            return Err(anyhow!(
+                "circular reference: {}",
+                &normalized_path.display()
+            ));
+        }
+
+        seen_paths.insert(normalized_path);
+
+        Ok(Transformer {
             root_path,
             seen_paths,
-        }
+        })
     }
 
     fn parse(self) -> Value {
@@ -64,29 +75,24 @@ impl Transformer {
         }
     }
 
-    fn circular_reference_guard(&self, file_path: &PathBuf) -> bool {
-        self.seen_paths.contains(file_path)
-    }
-
     fn handle_include_extension(&self, file_path: PathBuf) -> Value {
         let normalized_file_path = self.process_path(&file_path);
 
         let result = match normalized_file_path.extension() {
             Some(os_str) => match os_str.to_str() {
                 Some("yaml") | Some("yml") | Some("json") => {
-                    if self.circular_reference_guard(&normalized_file_path) {
-                        let path_string = &file_path.display();
-
-                        return Value::Tagged(
-                            TaggedValue {
-                                tag: Tag::new("circular"),
-                                value: Value::String(path_string.to_string()),
-                            }
-                            .into(),
-                        );
+                    match Transformer::new(normalized_file_path, Some(self.seen_paths.clone())) {
+                        Ok(transformer) => transformer.parse(),
+                        Err(_) => {
+                            return Value::Tagged(
+                                TaggedValue {
+                                    tag: Tag::new("circular"),
+                                    value: Value::String(file_path.display().to_string()),
+                                }
+                                .into(),
+                            );
+                        }
                     }
-
-                    Transformer::new(normalized_file_path, Some(self.seen_paths.clone())).parse()
                 }
                 // inlining markdow and text files
                 Some("txt") | Some("markdown") | Some("md") => {
@@ -144,10 +150,12 @@ impl fmt::Display for Transformer {
 }
 
 #[test]
-fn test_flattener() {
+fn test_flattener() -> Result<()> {
     let expected = read_to_string("data/expected.yml").unwrap();
     let transformer = Transformer::new(PathBuf::from("data/root.yml"), None);
-    let actual = transformer.to_string();
+    let actual = transformer?.to_string();
 
     assert_eq!(expected, actual);
+
+    Ok(())
 }
