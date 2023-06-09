@@ -48,6 +48,18 @@ Documentation:
   ```typescript
   const good = 'bad';
   ```
+JsonData:
+  string: world
+  integer: 10
+  float: 3.33
+  decimal: '7.77'
+  boolean: true
+  list:
+  - hello
+  - world
+  map:
+    this: or that
+    data: !circular ../root.yml
 MySet:
   one: null
   two: null
