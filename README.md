@@ -1,14 +1,21 @@
 # Yaml-include
 
-A yaml processor that can recursivly include files through `!include <path>` tag.
+A cli tool for processing yaml with include documents through `!include <path>` tag.
 
-> well, it kinda works with json as well see [data/simple/other.json](data/simple/other.json)
+> it kinda works with json as well see [data/simple/other.json](data/simple/other.json)
 
 ## Install
 
 ```shell
 cargo install yaml-include
 ```
+
+## Features
+
+- include and parse recursivly `yaml` (and `json`) files
+- include `markdown` and `txt` text files
+- include other types as `base64` encoded binary data.
+- handle gracefully circular references 
 
 ## Usage
 
@@ -19,16 +26,17 @@ yaml-include --help
 ```
 
 ```yaml
-Output yaml with recursive "!included" data
+A simple cli that output to stdout recursivly included data from a yaml file path
 
-Usage: yaml-include <FILE_PATH>
+Usage: yaml-include [OPTIONS] <FILE_PATH>
 
 Arguments:
-  <FILE_PATH>  main yaml file to process
+  <FILE_PATH>  main yaml file path to process
 
 Options:
-  -h, --help     Print help
-  -V, --version  Print version
+  -o, --output-path <OUTPUT_PATH>  optional output path (output to stdout if not set)
+  -h, --help                       Print help
+  -V, --version                    Print version
 ```
 
 ### Run
@@ -38,12 +46,6 @@ Ex.:
 ```shell
 yaml-include data/sample/main.yml > main_inlined.yml
 ```
-
-## Features
-
-- include and parse recursivly `yaml` (and `json`) files
-- include `markdown` and `txt` text files
-- include other types as `base64` encoded binary data. 
 
 Basically,
 turns this:
