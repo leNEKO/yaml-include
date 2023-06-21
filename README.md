@@ -15,7 +15,7 @@ cargo install yaml-include
 - include and parse recursivly `yaml` (and `json`) files
 - include `markdown` and `txt` text files
 - include other types as `base64` encoded binary data.
-- handle gracefully circular references 
+- by default handle gracefully circular references with `!circular` tag
 
 ## Usage
 

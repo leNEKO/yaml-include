@@ -12,6 +12,10 @@ struct Args {
     /// optional output path (output to stdout if not set)
     #[arg(short, long)]
     output_path: Option<PathBuf>,
+    /// panic on circular reference
+    /// (default: gracefully handle circular references with !circular tag)
+    #[arg(short, long)]
+    panic_on_circular: bool,
 }
 
 mod helpers;
@@ -20,7 +24,7 @@ mod transformer;
 fn main() -> Result<()> {
     let args = Args::parse();
 
-    let transformer = transformer::Transformer::new(args.file_path, None)?;
+    let transformer = transformer::Transformer::new(args.panic_on_circular, args.file_path, None)?;
     let data = format!("{}", transformer);
 
     match args.output_path {

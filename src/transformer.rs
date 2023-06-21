@@ -15,12 +15,17 @@ use crate::helpers::{load_as_base64, load_yaml};
 
 #[derive(Debug, Clone)]
 pub struct Transformer {
+    panic_on_circular: bool,
     root_path: PathBuf,
     seen_paths: HashSet<PathBuf>, // for circular reference detection
 }
 
 impl Transformer {
-    pub fn new(root_path: PathBuf, seen_paths_option: Option<HashSet<PathBuf>>) -> Result<Self> {
+    pub fn new(
+        strict: bool,
+        root_path: PathBuf,
+        seen_paths_option: Option<HashSet<PathBuf>>,
+    ) -> Result<Self> {
         let mut seen_paths = match seen_paths_option {
             Some(set) => set,
             None => HashSet::new(),
@@ -39,6 +44,7 @@ impl Transformer {
         seen_paths.insert(normalized_path);
 
         Ok(Transformer {
+            panic_on_circular: strict,
             root_path,
             seen_paths,
         })
@@ -81,9 +87,17 @@ impl Transformer {
         let result = match normalized_file_path.extension() {
             Some(os_str) => match os_str.to_str() {
                 Some("yaml") | Some("yml") | Some("json") => {
-                    match Transformer::new(normalized_file_path, Some(self.seen_paths.clone())) {
+                    match Transformer::new(
+                        self.panic_on_circular,
+                        normalized_file_path,
+                        Some(self.seen_paths.clone()),
+                    ) {
                         Ok(transformer) => transformer.parse(),
-                        Err(_) => {
+                        Err(e) => {
+                            if self.panic_on_circular {
+                                panic!("{:?}", e);
+                            }
+
                             return Value::Tagged(
                                 TaggedValue {
                                     tag: Tag::new("circular"),
@@ -152,7 +166,7 @@ impl fmt::Display for Transformer {
 #[test]
 fn test_flattener() -> Result<()> {
     let expected = read_to_string("data/expected.yml").unwrap();
-    let transformer = Transformer::new(PathBuf::from("data/root.yml"), None);
+    let transformer = Transformer::new(false, PathBuf::from("data/root.yml"), None);
     let actual = transformer?.to_string();
 
     assert_eq!(expected, actual);
