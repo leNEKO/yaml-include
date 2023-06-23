@@ -26,7 +26,7 @@ yaml-include --help
 ```
 
 ```yaml
-A simple cli that output to stdout recursivly included data from a yaml file path
+A simple cli that output to stdout recursively included data from a yaml file path
 
 Usage: yaml-include [OPTIONS] <FILE_PATH>
 
