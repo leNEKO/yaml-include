@@ -15,7 +15,7 @@ use crate::helpers::{load_as_base64, load_yaml};
 
 #[derive(Debug, Clone)]
 pub struct Transformer {
-    panic_on_circular: bool,
+    error_on_circular: bool,
     root_path: PathBuf,
     seen_paths: HashSet<PathBuf>, // for circular reference detection
 }
@@ -44,7 +44,7 @@ impl Transformer {
         seen_paths.insert(normalized_path);
 
         Ok(Transformer {
-            panic_on_circular: strict,
+            error_on_circular: strict,
             root_path,
             seen_paths,
         })
@@ -88,13 +88,14 @@ impl Transformer {
             Some(os_str) => match os_str.to_str() {
                 Some("yaml") | Some("yml") | Some("json") => {
                     match Transformer::new(
-                        self.panic_on_circular,
+                        self.error_on_circular,
                         normalized_file_path,
                         Some(self.seen_paths.clone()),
                     ) {
                         Ok(transformer) => transformer.parse(),
                         Err(e) => {
-                            if self.panic_on_circular {
+                            if self.error_on_circular {
+                                // TODO: is there something better than panic here ?
                                 panic!("{:?}", e);
                             }
 

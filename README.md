@@ -12,7 +12,7 @@ cargo install yaml-include
 
 ## Features
 
-- include and parse recursivly `yaml` (and `json`) files
+- include and parse recursively `yaml` (and `json`) files
 - include `markdown` and `txt` text files
 - include other types as `base64` encoded binary data.
 - by default handle gracefully circular references with `!circular` tag
@@ -35,6 +35,7 @@ Arguments:
 
 Options:
   -o, --output-path <OUTPUT_PATH>  optional output path (output to stdout if not set)
+  -p, --panic-on-circular          panic on circular reference (default: gracefully handle circular references with !circular tag)
   -h, --help                       Print help
   -V, --version                    Print version
 ```
