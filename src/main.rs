@@ -24,7 +24,7 @@ mod transformer;
 fn main() -> Result<()> {
     let args = Args::parse();
 
-    let transformer = transformer::Transformer::new(args.error_on_circular, args.file_path, None)?;
+    let transformer = transformer::Transformer::new(args.file_path, args.error_on_circular)?;
     let data = format!("{}", transformer);
 
     match args.output_path {

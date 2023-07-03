@@ -1,13 +1,13 @@
 [package]
 name = "yaml-include"
-version = "0.6.0"
+version = "0.7.0"
 edition = "2021"
 authors = ["Merleur l'enchantin <le.neko@gmail.com>"]
 license = "GPL-3.0"
-description = "A simple cli that output to stdout recursively included data from a yaml file path"
+description = "A lib and a CLI for recursively parsing \"!include\" data in yaml files"
 readme = "README.md"
 repository = "https://github.com/leNEKO/yaml-include"
-keywords = ['cli', 'yaml', 'include']
+keywords = ['cli', 'yaml', 'include', 'lib']
 
 [dependencies]
 anyhow = "1.0.71"
