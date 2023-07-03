@@ -1,3 +1,5 @@
+#![warn(missing_docs)]
+
 mod helpers;
 mod transformer;
 
