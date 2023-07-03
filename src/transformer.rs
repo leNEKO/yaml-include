@@ -13,6 +13,22 @@ use std::{
 
 use crate::helpers::{load_as_base64, load_yaml};
 
+/// Processing yaml with include documents through `!include <path>` tag.
+///
+/// ## Features
+///
+/// - include and parse recursively `yaml` (and `json`) files
+/// - include `markdown` and `txt` text files
+/// - include other types as `base64` encoded binary data.
+/// - optionaly handle gracefully circular references with `!circular` tag
+///
+/// ## Example
+/// ```
+/// let path = PathBuf::from("/path/to/yaml/file");
+/// let transformer = transformer::Transformer::new(path)?;
+///
+/// println!("{}", transformer);
+/// ```
 #[derive(Debug, Clone)]
 pub struct Transformer {
     error_on_circular: bool,
@@ -21,10 +37,27 @@ pub struct Transformer {
 }
 
 impl Transformer {
+    /// Instance a transformer from a yaml file path.
+    ///
+    /// # Example:
+    ///
+    /// ```
+    /// let path = PathBuf::from("/path/to/yaml/file");
+    /// let transformer = transformer::Transformer::new(path)?;
+    /// ```
     pub fn new(root_path: PathBuf, strict: bool) -> Result<Self> {
         Self::new_node(root_path, strict, None)
     }
 
+    /// Parse yaml with recursivly processing `!include`
+    ///
+    /// # Example:
+    ///
+    /// ```
+    /// let path = PathBuf::from("/path/to/yaml/file");
+    /// let transformer = transformer::Transformer::new(path)?;
+    /// let processed = transformer.parse();
+    /// ```
     pub fn parse(&self) -> Value {
         let file_path = self.root_path.clone();
         let input = load_yaml(file_path).unwrap();
