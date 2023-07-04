@@ -24,10 +24,13 @@ use crate::helpers::{load_as_base64, load_yaml};
 ///
 /// ## Example
 /// ```
-/// let path = PathBuf::from("/path/to/yaml/file");
-/// let transformer = transformer::Transformer::new(path)?;
+/// use std::path::PathBuf;
+/// use yaml_include::Transformer;
 ///
-/// println!("{}", transformer);
+/// let path = PathBuf::from("data/sample/main.yml");
+/// if let Ok(transformer) = Transformer::new(path, false) {
+///     println!("{}", transformer);
+/// };
 /// ```
 #[derive(Debug, Clone)]
 pub struct Transformer {
@@ -42,21 +45,31 @@ impl Transformer {
     /// # Example:
     ///
     /// ```
-    /// let path = PathBuf::from("/path/to/yaml/file");
-    /// let transformer = transformer::Transformer::new(path)?;
+    /// use std::path::PathBuf;
+    /// use yaml_include::Transformer;
+    ///
+    /// let path = PathBuf::from("data/sample/main.yml");
+    /// if let Ok(transformer) = Transformer::new(path, false) {
+    ///     dbg!(transformer);
+    /// };
     /// ```
     pub fn new(root_path: PathBuf, strict: bool) -> Result<Self> {
         Self::new_node(root_path, strict, None)
     }
 
-    /// Parse yaml with recursivly processing `!include`
+    /// Parse yaml with recursively processing `!include`
     ///
     /// # Example:
     ///
     /// ```
-    /// let path = PathBuf::from("/path/to/yaml/file");
-    /// let transformer = transformer::Transformer::new(path)?;
-    /// let processed = transformer.parse();
+    /// use std::path::PathBuf;
+    /// use yaml_include::Transformer;
+    ///
+    /// let path = PathBuf::from("data/sample/main.yml");
+    /// if let Ok(transformer) = Transformer::new(path, false) {
+    ///     let parsed = transformer.parse();
+    ///     dbg!(parsed);
+    /// };
     /// ```
     pub fn parse(&self) -> Value {
         let file_path = self.root_path.clone();

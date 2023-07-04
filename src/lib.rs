@@ -10,10 +10,13 @@
 //!
 //! ## Example
 //! ```
-//! let path = PathBuf::from("/path/to/yaml/file");
-//! let transformer = transformer::Transformer::new(path)?;
+//! use std::path::PathBuf;
+//! use yaml_include::Transformer;
 //!
-//! println!("{}", transformer);
+//! let path = PathBuf::from("data/sample/main.yml");
+//! if let Ok(transformer) = Transformer::new(path, false) {
+//!     println!("{}", transformer);
+//! };
 //! ```
 mod helpers;
 mod transformer;
