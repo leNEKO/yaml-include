@@ -13,6 +13,25 @@ use std::{
 
 use crate::helpers::{load_as_base64, load_yaml};
 
+/// Processing yaml with include documents through `!include <path>` tag.
+///
+/// ## Features
+///
+/// - include and parse recursively `yaml` (and `json`) files
+/// - include `markdown` and `txt` text files
+/// - include other types as `base64` encoded binary data.
+/// - optionaly handle gracefully circular references with `!circular` tag
+///
+/// ## Example
+/// ```
+/// use std::path::PathBuf;
+/// use yaml_include::Transformer;
+///
+/// let path = PathBuf::from("data/sample/main.yml");
+/// if let Ok(transformer) = Transformer::new(path, false) {
+///     println!("{}", transformer);
+/// };
+/// ```
 #[derive(Debug, Clone)]
 pub struct Transformer {
     error_on_circular: bool,
@@ -21,9 +40,47 @@ pub struct Transformer {
 }
 
 impl Transformer {
-    pub fn new(
-        strict: bool,
+    /// Instance a transformer from a yaml file path.
+    ///
+    /// # Example:
+    ///
+    /// ```
+    /// use std::path::PathBuf;
+    /// use yaml_include::Transformer;
+    ///
+    /// let path = PathBuf::from("data/sample/main.yml");
+    /// if let Ok(transformer) = Transformer::new(path, false) {
+    ///     dbg!(transformer);
+    /// };
+    /// ```
+    pub fn new(root_path: PathBuf, strict: bool) -> Result<Self> {
+        Self::new_node(root_path, strict, None)
+    }
+
+    /// Parse yaml with recursively processing `!include`
+    ///
+    /// # Example:
+    ///
+    /// ```
+    /// use std::path::PathBuf;
+    /// use yaml_include::Transformer;
+    ///
+    /// let path = PathBuf::from("data/sample/main.yml");
+    /// if let Ok(transformer) = Transformer::new(path, false) {
+    ///     let parsed = transformer.parse();
+    ///     dbg!(parsed);
+    /// };
+    /// ```
+    pub fn parse(&self) -> Value {
+        let file_path = self.root_path.clone();
+        let input = load_yaml(file_path).unwrap();
+
+        self.clone().recursive_process(input)
+    }
+
+    fn new_node(
         root_path: PathBuf,
+        strict: bool,
         seen_paths_option: Option<HashSet<PathBuf>>,
     ) -> Result<Self> {
         let mut seen_paths = match seen_paths_option {
@@ -48,13 +105,6 @@ impl Transformer {
             root_path,
             seen_paths,
         })
-    }
-
-    fn parse(self) -> Value {
-        let file_path = self.root_path.clone();
-        let input = load_yaml(file_path).unwrap();
-
-        self.recursive_process(input)
     }
 
     fn recursive_process(self, input: Value) -> Value {
@@ -87,15 +137,15 @@ impl Transformer {
         let result = match normalized_file_path.extension() {
             Some(os_str) => match os_str.to_str() {
                 Some("yaml") | Some("yml") | Some("json") => {
-                    match Transformer::new(
-                        self.error_on_circular,
+                    match Transformer::new_node(
                         normalized_file_path,
+                        self.error_on_circular,
                         Some(self.seen_paths.clone()),
                     ) {
                         Ok(transformer) => transformer.parse(),
                         Err(e) => {
                             if self.error_on_circular {
-                                // TODO: is there something better than panic here ?
+                                // TODO: probably something better to do than panic ?
                                 panic!("{:?}", e);
                             }
 
@@ -165,9 +215,9 @@ impl fmt::Display for Transformer {
 }
 
 #[test]
-fn test_flattener() -> Result<()> {
+fn test_transformer() -> Result<()> {
     let expected = read_to_string("data/expected.yml").unwrap();
-    let transformer = Transformer::new(false, PathBuf::from("data/root.yml"), None);
+    let transformer = Transformer::new(PathBuf::from("data/root.yml"), false);
     let actual = transformer?.to_string();
 
     assert_eq!(expected, actual);
