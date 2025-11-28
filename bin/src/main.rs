@@ -1,7 +1,10 @@
-use std::{fs::write, path::PathBuf};
+use std::fs;
+use std::path::PathBuf;
+use std::process::ExitCode;
 
 use anyhow::Result;
 use clap::Parser;
+use yaml_include::Transformer;
 
 /// Output yaml with processed "!include" tags
 #[derive(clap::Parser)]
@@ -18,21 +21,26 @@ struct Args {
     error_on_circular: bool,
 }
 
-mod helpers;
-mod transformer;
-
-fn main() -> Result<()> {
+fn main() -> ExitCode {
     let args = Args::parse();
+    let res = run(args);
+    match res {
+        Ok(()) => ExitCode::SUCCESS,
+        Err(err) => {
+            eprintln!("{err:?}");
+            ExitCode::FAILURE
+        }
+    }
+}
 
-    let transformer = transformer::Transformer::new(args.file_path, args.error_on_circular)?;
-    let data = format!("{}", transformer);
-
+fn run(args: Args) -> Result<()> {
+    let transformer = Transformer::new(args.file_path, args.error_on_circular);
+    let data = transformer?.parse_to_string()?;
     match args.output_path {
         Some(path) => {
-            write(path, data)?;
+            fs::write(path, data)?;
         }
         None => print!("{}", data),
     };
-
     Ok(())
 }

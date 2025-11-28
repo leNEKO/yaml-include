@@ -116,4 +116,4 @@ data:
 
 ```
 
-> see [data/sample](data/sample)
+> see [examples/sample](data/sample)

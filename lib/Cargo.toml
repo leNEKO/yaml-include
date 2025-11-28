@@ -1,0 +1,43 @@
+[package]
+name = "yaml-include"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description.workspace = true
+readme.workspace = true
+repository.workspace = true
+keywords.workspace = true
+
+[lib]
+name = "yaml_include"
+
+[features]
+default = ["glob", "include_bin"]
+
+# Allow glob imports
+glob = ["dep:globset", "dep:pathdiff", "dep:walkdir"]
+
+# Allow base64 kind on include
+include_bin = ["dep:base64"]
+
+
+
+[dependencies]
+# Expose library errors 
+thiserror = "2"
+
+# yaml de-serialization issues
+serde_yaml_ng = "0.10"
+
+# Allow glob includes
+globset = { version = "0.4", optional = true }
+pathdiff = { version = "0.2", optional = true }
+walkdir = { version = "2", optional = true }
+
+# Allow bin includes
+base64 = { version = "0.21", optional = true }
+
+[dev-dependencies]
+# For pretty diff in errors
+pretty_assertions = "1"

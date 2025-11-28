@@ -1,0 +1,2 @@
+database_list:
+  !include_yaml databases/all.yml

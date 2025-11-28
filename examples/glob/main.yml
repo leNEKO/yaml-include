@@ -1,0 +1,2 @@
+database_list:
+  !include_yaml databases/{mysql,postgres}.yml

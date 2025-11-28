@@ -1,0 +1,23 @@
+yaml:
+- something:
+  - this
+  - that
+- other:
+  - text: |-
+      This is some long multiline
+      text i don't want to edit
+      inline in a long yaml file
+  - markdown: |
+      # This is some markdown data
+
+      ## I don't want to edit
+
+      - inline
+      - in a long yaml file
+- ceci: cela
+  machin: patin
+  list:
+  - 1
+  - 2
+  - 3
+  - 4
