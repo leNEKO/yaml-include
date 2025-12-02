@@ -59,7 +59,7 @@ JsonData:
   - world
   map:
     this: or that
-    data: !circular ../root.yml
+    data: !circular ../main.yml
 MySet:
   one: null
   two: null

@@ -1,0 +1,3 @@
+another_value: false
+here_the_circular_ref_happens: !include "main.yml"
+  

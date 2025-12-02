@@ -1,0 +1,39 @@
+[package]
+name = "yaml-include-bin"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description.workspace = true
+readme.workspace = true
+repository.workspace = true
+keywords.workspace = true
+
+[[bin]]         
+name = "yaml-include"
+path = "src/main.rs"
+
+[features]
+default = ["dotenv", "glob", "include_bin"]
+
+# Load automatically .env local file
+dotenv=["dep:dotenv"]
+
+# Allow glob imports
+glob = ["yaml-include/glob"]
+
+# Allow base64 kind on include
+include_bin = ["yaml-include/include_bin"]
+
+
+[dependencies]
+yaml-include = { path = "../lib" }
+
+# For cli arg parsing
+clap = { version = "4", features = ["derive"]}
+
+# For easy error management
+anyhow = "1"
+
+# Load automatically .env local file
+dotenv = { version = "0.15", optional = true }

@@ -18,7 +18,13 @@
 //!     println!("{}", transformer);
 //! };
 //! ```
+mod errors;
 mod helpers;
+mod public;
 mod transformer;
 
+#[cfg(feature = "glob")]
+mod glob;
+
+pub use public::read;
 pub use transformer::*;

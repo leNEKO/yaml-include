@@ -1,0 +1,5 @@
+database_list:
+  postgres:
+    default_port: 5432
+  mysql:
+    default_port: 3306

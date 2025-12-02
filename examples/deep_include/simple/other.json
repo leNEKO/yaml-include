@@ -10,6 +10,6 @@
     ],
     "map": {
         "this": "or that",
-        "data": !include ../root.yml
+        "data": !include ../main.yml
     }
 }
