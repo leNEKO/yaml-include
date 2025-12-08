@@ -13,4 +13,4 @@ keywords = ['cli', 'yaml', 'include', 'lib']
 anyhow = "1.0.71"
 base64 = "0.21.2"
 clap = { version = "4.3.0", features = ["derive"] }
-serde_yaml = "0.9.21"
+serde_yaml_ng = "0.10.0"

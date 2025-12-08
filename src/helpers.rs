@@ -1,6 +1,6 @@
 use anyhow::Result;
 use base64::{engine::general_purpose, Engine};
-use serde_yaml::Value as YamlValue;
+use serde_yaml_ng::Value as YamlValue;
 
 use std::{
     fs::{read, File},
@@ -9,7 +9,7 @@ use std::{
 
 pub fn load_yaml(file_path: PathBuf) -> Result<YamlValue> {
     let file_reader = File::open(file_path).expect("Unable to open file");
-    let data: YamlValue = serde_yaml::from_reader(file_reader)?;
+    let data: YamlValue = serde_yaml_ng::from_reader(file_reader)?;
 
     Ok(data)
 }

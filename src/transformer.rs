@@ -1,5 +1,5 @@
 use anyhow::{anyhow, Result};
-use serde_yaml::{
+use serde_yaml_ng::{
     value::{Tag, TaggedValue},
     Mapping, Value,
 };
@@ -206,7 +206,7 @@ impl fmt::Display for Transformer {
         write!(
             f,
             "{}",
-            serde_yaml::to_string(&self.clone().parse()).unwrap()
+            serde_yaml_ng::to_string(&self.clone().parse()).unwrap()
         )
     }
 }
