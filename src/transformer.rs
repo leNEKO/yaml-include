@@ -1,5 +1,5 @@
 use anyhow::{anyhow, Result};
-use serde_yaml::{
+use serde_yaml_ng::{
     value::{Tag, TaggedValue},
     Mapping, Value,
 };
@@ -83,10 +83,7 @@ impl Transformer {
         strict: bool,
         seen_paths_option: Option<HashSet<PathBuf>>,
     ) -> Result<Self> {
-        let mut seen_paths = match seen_paths_option {
-            Some(set) => set,
-            None => HashSet::new(),
-        };
+        let mut seen_paths = seen_paths_option.unwrap_or_default();
 
         let normalized_path = canonicalize(&root_path).unwrap();
 
@@ -209,7 +206,7 @@ impl fmt::Display for Transformer {
         write!(
             f,
             "{}",
-            serde_yaml::to_string(&self.clone().parse()).unwrap()
+            serde_yaml_ng::to_string(&self.clone().parse()).unwrap()
         )
     }
 }
