@@ -1,6 +1,6 @@
 [package]
 name = "yaml-include"
-version = "0.7.0"
+version = "0.7.1"
 edition = "2021"
 authors = ["Merleur l'enchantin <le.neko@gmail.com>"]
 license = "GPL-3.0"
@@ -13,6 +13,4 @@ keywords = ['cli', 'yaml', 'include', 'lib']
 anyhow = "1.0.71"
 base64 = "0.21.2"
 clap = { version = "4.3.0", features = ["derive"] }
-regex = "1.8.3"
 serde_yaml = "0.9.21"
-yaml-rust = "0.4.5"
