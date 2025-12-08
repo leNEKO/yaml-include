@@ -83,10 +83,7 @@ impl Transformer {
         strict: bool,
         seen_paths_option: Option<HashSet<PathBuf>>,
     ) -> Result<Self> {
-        let mut seen_paths = match seen_paths_option {
-            Some(set) => set,
-            None => HashSet::new(),
-        };
+        let mut seen_paths = seen_paths_option.unwrap_or_default();
 
         let normalized_path = canonicalize(&root_path).unwrap();
 
