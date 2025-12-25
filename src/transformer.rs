@@ -25,6 +25,12 @@ enum Extension {
     Binary,
 }
 
+#[derive(Debug)]
+enum ParseError {
+    MissingPath,
+    MissingExtension,
+}
+
 impl FromStr for Extension {
     type Err = ();
 
@@ -37,38 +43,42 @@ impl FromStr for Extension {
     }
 }
 
-impl From<Mapping> for FilePath {
-    fn from(value: Mapping) -> Self {
+impl TryFrom<Mapping> for FilePath {
+    type Error = ParseError;
+
+    fn try_from(value: Mapping) -> Result<Self, Self::Error> {
         let path = value
             .get("path")
             .and_then(|value| value.as_str())
-            .expect("Missing path")
+            .ok_or(ParseError::MissingPath)?
             .into();
 
         let extension = Extension::from_str(
             value
                 .get("extension")
                 .and_then(|value| value.as_str())
-                .expect("Missing extension"),
+                .ok_or(ParseError::MissingExtension)?,
         )
         .expect("Infaillible conversion");
 
-        Self { path, extension }
+        Ok(Self { path, extension })
     }
 }
 
-impl From<String> for FilePath {
-    fn from(value: String) -> Self {
+impl TryFrom<String> for FilePath {
+    type Error = ParseError;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
         let path: PathBuf = value.into();
 
         let extension = Extension::from_str(
             path.extension()
                 .and_then(|ext| ext.to_str())
-                .expect("Missing extension"),
+                .ok_or(ParseError::MissingExtension)?,
         )
-        .unwrap();
+        .expect("Infaillible conversion");
 
-        Self { path, extension }
+        Ok(Self { path, extension })
     }
 }
 
@@ -176,8 +186,8 @@ impl Transformer {
             Value::Tagged(tagged_value) => match tagged_value.tag.to_string().as_str() {
                 "!include" => {
                     let file_path: FilePath = match tagged_value.value {
-                        Value::String(path) => path.into(),
-                        Value::Mapping(mapping) => mapping.into(),
+                        Value::String(path) => path.try_into().unwrap(),
+                        Value::Mapping(mapping) => mapping.try_into().unwrap(),
                         _ => panic!("Unsupported Value"),
                     };
 
