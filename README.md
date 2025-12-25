@@ -15,6 +15,7 @@ cargo install yaml-include
 - include and parse recursively `yaml` (and `json`) files
 - include `markdown` and `txt` text files
 - include other types as `base64` encoded binary data.
+- hint or force extension with `!include { "path": "<file_path>", "extension": "txt"}`
 - by default handle gracefully circular references with `!circular` tag
 
 ## Usage
@@ -57,6 +58,7 @@ turns this:
 data:
     - !include file_a.yml
     - !include file_b.yml
+    - !include { "path": "file_a.yml", "extension": "txt"}
 ```
 
 `file_a.yml`:

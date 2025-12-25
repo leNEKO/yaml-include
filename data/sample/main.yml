@@ -1,4 +1,4 @@
 yaml:
-    - !include file_a.yml
-    - !include file_b.yml
-    - !include file_e.json
+  - !include file_a.yml
+  - !include file_b.yml
+  - !include file_e.json

@@ -3,3 +3,4 @@ World:
   - Tralala
   - 42
   - !include b.yml
+  - !include { "path": "b.yml", "extension": "txt" }
