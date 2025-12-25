@@ -8,6 +8,10 @@ Nested:
     - people
     - need to be recursive: yes
       whatever: CECI est un texte
+  - |
+    Bye:
+      - people
+      - !include c.yml
 - Bye:
   - people
   - need to be recursive: yes
