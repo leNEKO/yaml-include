@@ -9,9 +9,68 @@ use std::{
     fmt,
     fs::{canonicalize, read_to_string},
     path::PathBuf,
+    str::FromStr,
 };
 
 use crate::helpers::{load_as_base64, load_yaml};
+
+struct FilePath {
+    path: PathBuf,
+    extension: Extension,
+}
+
+enum Extension {
+    Yaml,
+    Text,
+    Binary,
+}
+
+impl FromStr for Extension {
+    type Err = ();
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        match s {
+            "yaml" | "yml" | "json" => Ok(Self::Yaml),
+            "md" | "markdown" | "txt" => Ok(Self::Text),
+            _ => Ok(Self::Binary),
+        }
+    }
+}
+
+impl From<Mapping> for FilePath {
+    fn from(value: Mapping) -> Self {
+        let path = value
+            .get("path")
+            .and_then(|value| value.as_str())
+            .expect("Missing path")
+            .into();
+
+        let extension = Extension::from_str(
+            value
+                .get("extension")
+                .and_then(|value| value.as_str())
+                .expect("Missing extension"),
+        )
+        .expect("Infaillible conversion");
+
+        Self { path, extension }
+    }
+}
+
+impl From<String> for FilePath {
+    fn from(value: String) -> Self {
+        let path: PathBuf = value.into();
+
+        let extension = Extension::from_str(
+            path.extension()
+                .and_then(|ext| ext.to_str())
+                .expect("Missing extension"),
+        )
+        .unwrap();
+
+        Self { path, extension }
+    }
+}
 
 /// Processing yaml with include documents through `!include <path>` tag.
 ///
@@ -116,8 +175,11 @@ impl Transformer {
             )),
             Value::Tagged(tagged_value) => match tagged_value.tag.to_string().as_str() {
                 "!include" => {
-                    let value = tagged_value.value.as_str().unwrap();
-                    let file_path = PathBuf::from(value);
+                    let file_path: FilePath = match tagged_value.value {
+                        Value::String(path) => path.into(),
+                        Value::Mapping(mapping) => mapping.into(),
+                        _ => panic!("Unsupported Value"),
+                    };
 
                     self.handle_include_extension(file_path)
                 }
@@ -128,60 +190,54 @@ impl Transformer {
         }
     }
 
-    fn handle_include_extension(&self, file_path: PathBuf) -> Value {
-        let normalized_file_path = self.process_path(&file_path);
+    fn handle_include_extension(&self, file_path: FilePath) -> Value {
+        let normalized_file_path = self.process_path(&file_path.path);
 
-        let result = match normalized_file_path.extension() {
-            Some(os_str) => match os_str.to_str() {
-                Some("yaml") | Some("yml") | Some("json") => {
-                    match Transformer::new_node(
-                        normalized_file_path,
-                        self.error_on_circular,
-                        Some(self.seen_paths.clone()),
-                    ) {
-                        Ok(transformer) => transformer.parse(),
-                        Err(e) => {
-                            if self.error_on_circular {
-                                // TODO: probably something better to do than panic ?
-                                panic!("{:?}", e);
-                            }
-
-                            return Value::Tagged(
-                                TaggedValue {
-                                    tag: Tag::new("circular"),
-                                    value: Value::String(file_path.display().to_string()),
-                                }
-                                .into(),
-                            );
+        let result = match file_path.extension {
+            Extension::Yaml => {
+                match Transformer::new_node(
+                    normalized_file_path,
+                    self.error_on_circular,
+                    Some(self.seen_paths.clone()),
+                ) {
+                    Ok(transformer) => transformer.parse(),
+                    Err(e) => {
+                        if self.error_on_circular {
+                            panic!("{:?}", e);
                         }
+
+                        return Value::Tagged(
+                            TaggedValue {
+                                tag: Tag::new("circular"),
+                                value: Value::String(file_path.path.display().to_string()),
+                            }
+                            .into(),
+                        );
                     }
                 }
-                // inlining markdow and text files
-                Some("txt") | Some("markdown") | Some("md") => {
-                    Value::String(read_to_string(normalized_file_path).unwrap())
-                }
-                // inlining other include as binary files
-                None | Some(&_) => Value::Tagged(Box::new(TaggedValue {
-                    tag: Tag::new("binary"),
-                    value: Value::Mapping(Mapping::from_iter([
-                        (
-                            Value::String("filename".into()),
-                            Value::String(
-                                normalized_file_path
-                                    .file_name()
-                                    .unwrap()
-                                    .to_string_lossy()
-                                    .to_string(),
-                            ),
+            }
+            // inlining markdow and text files
+            Extension::Text => Value::String(read_to_string(normalized_file_path).unwrap()),
+            // inlining other include as binary files
+            Extension::Binary => Value::Tagged(Box::new(TaggedValue {
+                tag: Tag::new("binary"),
+                value: Value::Mapping(Mapping::from_iter([
+                    (
+                        Value::String("filename".into()),
+                        Value::String(
+                            normalized_file_path
+                                .file_name()
+                                .unwrap()
+                                .to_string_lossy()
+                                .to_string(),
                         ),
-                        (
-                            Value::String("base64".into()),
-                            Value::String(load_as_base64(&normalized_file_path).unwrap()),
-                        ),
-                    ])),
-                })),
-            },
-            _ => panic!("{:?} path missing file extension", normalized_file_path),
+                    ),
+                    (
+                        Value::String("base64".into()),
+                        Value::String(load_as_base64(&normalized_file_path).unwrap()),
+                    ),
+                ])),
+            })),
         };
 
         result
