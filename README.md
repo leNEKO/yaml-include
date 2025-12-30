@@ -58,7 +58,7 @@ turns this:
 data:
     - !include file_a.yml
     - !include file_b.yml
-    - !include { "path": "file_a.yml", "extension": "txt"}
+    - !include { "path": "file_b.yml", "extension": "txt"}
 ```
 
 `file_a.yml`:
@@ -100,22 +100,25 @@ Into that:
 
 ```yaml
 data:
-  - something:
-      - this
-      - that
-  - other:
-      - text: |-
-          This is some long multiline
-          text i don't want to edit
-          inline in a long yaml file
-      - markdown: |
-          # This is some markdown data
+- something:
+  - this
+  - that
+- other:
+  - text: |
+      This is some long multiline
+      text i don't want to edit
+      inline in a long yaml file
+  - markdown: |
+      # This is some markdown data
 
-          ## I don't want to edit
+      ## I don't want to edit
 
-          - inline
-          - in a long yaml file
-
+      - inline
+      - in a long yaml file
+- |
+  other:
+    - text: !include file_c.txt
+    - markdown: !include file_d.md
 ```
 
 > see [data/sample](data/sample)
